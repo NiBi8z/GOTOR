@@ -1,0 +1,6 @@
+# No vanguard, no Predicted circuits (to permits attack easily)
+ORPort 0
+SocksPort 0.0.0.0:9050
+ClientOnly 1
+VanguardsLiteEnabled 0
+__DisablePredictedCircuits 1

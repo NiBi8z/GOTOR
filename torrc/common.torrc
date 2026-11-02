@@ -1,0 +1,28 @@
+# ============================================================================
+# common.torrc 
+# ============================================================================
+
+
+TestingTorNetwork 1
+
+# Relays ALWAYS get the flag Running.
+AssumeReachable 1
+
+# Build circuit even with a few relay.
+PathsNeededToBuildCircuits 0.25
+
+# HSDir given to anybody 
+TestingDirAuthVoteHSDir *
+
+TestingDirAuthVoteGuard guard1,guard2,guard3
+TestingDirAuthVoteGuardIsStrict 1
+
+# Give ControlPort access for debug purpose
+ControlPort 0.0.0.0:9051
+CookieAuthentication 1
+CookieAuthFileGroupReadable 1
+
+# password : "goadtor-dashboard-lab" 
+HashedControlPassword 16:C6248AC18BDFF0CB6027EE2D2AD64CE84DD9E3D9329160DF7463EB8B2E
+
+Log notice stdout

@@ -1,0 +1,170 @@
+x-tornode: &tornode
+  build: .
+  image: gotor/node:latest
+  restart: "no"
+  depends_on:
+    keygen:
+      condition: service_completed_successfully
+  volumes:
+    - shared:/shared
+    - ./torrc:/torrc:ro
+
+x-hsnode: &hsnode
+  restart: "no"
+  depends_on:
+    keygen:
+      condition: service_completed_successfully
+  volumes:
+    - shared:/shared
+    - ./torrc:/torrc:ro
+
+services:
+
+  # ----- Generating keys for lab ---------------------------
+  keygen:
+    build: .
+    image: gotor/node:latest
+    entrypoint: ["/scripts/gen-keys.sh"]
+    restart: "no"
+    volumes:
+      - shared:/shared
+    networks:
+      torlab: { ipv4_address: 10.44.0.9 }
+
+  # ----- Directory Authorities (x3) ------------------------------------------
+  auth1:
+    <<: *tornode
+    container_name: auth1
+    environment: { TOR_ROLE: auth, TOR_NICK: auth1, TOR_ADDR: 10.44.0.11 }
+    networks: { torlab: { ipv4_address: 10.44.0.11 } }
+  auth2:
+    <<: *tornode
+    container_name: auth2
+    environment: { TOR_ROLE: auth, TOR_NICK: auth2, TOR_ADDR: 10.44.0.12 }
+    networks: { torlab: { ipv4_address: 10.44.0.12 } }
+  auth3:
+    <<: *tornode
+    container_name: auth3
+    environment: { TOR_ROLE: auth, TOR_NICK: auth3, TOR_ADDR: 10.44.0.13 }
+    networks: { torlab: { ipv4_address: 10.44.0.13 } }
+
+  # ----- Guards (x3) -------------------------------------------------
+  guard1:
+    <<: *tornode
+    container_name: guard1
+    environment: { TOR_ROLE: relay, TOR_NICK: guard1, TOR_ADDR: 10.44.1.11 }
+    networks: { torlab: { ipv4_address: 10.44.1.11 } }
+  guard2:
+    <<: *tornode
+    container_name: guard2
+    environment: { TOR_ROLE: relay, TOR_NICK: guard2, TOR_ADDR: 10.44.1.12 }
+    networks: { torlab: { ipv4_address: 10.44.1.12 } }
+  guard3:
+    <<: *tornode
+    container_name: guard3
+    environment: { TOR_ROLE: relay, TOR_NICK: guard3, TOR_ADDR: 10.44.1.13 }
+    networks: { torlab: { ipv4_address: 10.44.1.13 } }
+
+  # ----- Middles (x2) --------------------------------------------------------
+  middle1:
+    <<: *tornode
+    container_name: middle1
+    environment: { TOR_ROLE: relay, TOR_NICK: middle1, TOR_ADDR: 10.44.2.11 }
+    networks: { torlab: { ipv4_address: 10.44.2.11 } }
+  middle2:
+    <<: *tornode
+    container_name: middle2
+    environment: { TOR_ROLE: relay, TOR_NICK: middle2, TOR_ADDR: 10.44.2.12 }
+    networks: { torlab: { ipv4_address: 10.44.2.12 } }
+
+  middle3:
+    <<: *tornode
+    container_name: middle3
+    environment: { TOR_ROLE: relay, TOR_NICK: middle3, TOR_ADDR: 10.44.3.11 }
+    networks: { torlab: { ipv4_address: 10.44.3.11 } }
+  middle4:
+    <<: *tornode
+    container_name: middle4
+    environment: { TOR_ROLE: relay, TOR_NICK: middle4, TOR_ADDR: 10.44.3.12 }
+    networks: { torlab: { ipv4_address: 10.44.3.12 } }
+  middle5:
+    <<: *tornode
+    container_name: middle5
+    environment: { TOR_ROLE: relay, TOR_NICK: middle5, TOR_ADDR: 10.44.3.13 }
+    networks: { torlab: { ipv4_address: 10.44.3.13 } }
+
+  # ----- Hidden services -----------------------
+  hs1-leaky:
+    <<: *hsnode
+    build: ./hs-apps/leaky-flask
+    container_name: hs1-leaky
+    environment: { HS_NICK: hs1, HS_ADDR: 10.44.4.73, HS_NAME: hs1-leaky, HS_VARIANT: default }
+    networks: { torlab: { ipv4_address: 10.44.4.73 } }
+  hs2-singlehop:
+    <<: *hsnode
+    build: ./hs-apps/singlehop
+    container_name: hs2-singlehop
+    environment: { HS_NICK: hs2, HS_ADDR: 10.44.4.142, HS_NAME: hs2-singlehop, HS_VARIANT: singlehop }
+    networks: { torlab: { ipv4_address: 10.44.4.142 } }
+  hs3-lfi:
+    <<: *hsnode
+    build: ./hs-apps/lfi-cms
+    container_name: hs3-lfi
+    environment: { HS_NICK: hs3, HS_ADDR: 10.44.4.219, HS_NAME: hs3-lfi, HS_VARIANT: default }
+    networks: { torlab: { ipv4_address: 10.44.4.219 } }
+
+  # ----- Clients (SOCKS) -----------------------------------------------------
+  client1:
+    <<: *tornode
+    container_name: client1
+    environment: { TOR_ROLE: client, TOR_NICK: client1, TOR_ADDR: 10.44.5.11 }
+    networks: { torlab: { ipv4_address: 10.44.5.11 } }
+  client2:
+    <<: *tornode
+    container_name: client2
+    environment: { TOR_ROLE: client, TOR_NICK: client2, TOR_ADDR: 10.44.5.12 }
+    networks: { torlab: { ipv4_address: 10.44.5.12 } }
+
+  # ----- SOCKS Bridge -------------------------------------------------
+  socks-bridge:
+    build: ./socks-bridge
+    container_name: socks-bridge
+    restart: "no"
+    depends_on: [client1]
+    ports:
+      - "127.0.0.1:9050:9050"
+    networks:
+      torlab: {}
+      dashnet: {}
+
+  # ----- Board CTF -------------------------------------------------
+  ctf-board:
+    build: ./ctf-board
+    container_name: ctf-board
+    restart: "no"
+    environment:
+      TOR_CONTROL_PASSWORD: goadtor-dashboard-lab
+      CHECK_CLIENT: client2
+    volumes:
+      - shared:/shared:ro
+    ports:
+      - "127.0.0.1:8081:8081"
+    networks:
+      torlab: {}
+      dashnet: {}
+
+networks:
+  torlab:
+    name: gotor
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.44.0.0/16
+
+  dashnet:
+    driver: bridge
+    internal: true
+
+volumes:
+  shared:

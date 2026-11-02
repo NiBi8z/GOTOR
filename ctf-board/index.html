@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GOTOR : Attack Board</title>
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --bg2: #12151d;
+      --card: #161a24;
+      --card2: #1b2130;
+      --line: #262d3b;
+      --txt: #e6e9f0;
+      --mut: #8b93a7;
+      --mut2: #5b6478;
+      --onion: #a970ff;
+      --onion2: #7c4dff;
+      --ok: #3ddc84;
+      --warn: #ffb020;
+      --bad: #ff5c6c;
+      --mono: ui-monospace, "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1200px 600px at 80% -10%, rgba(124, 77, 255, .12), transparent 60%),
+        radial-gradient(900px 500px at -10% 110%, rgba(61, 220, 132, .06), transparent 60%),
+        var(--bg);
+      color: var(--txt);
+      font-family: var(--sans);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased
+    }
+
+    a {
+      color: var(--onion)
+    }
+
+    .wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 32px 20px 72px
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 18px;
+      justify-content: space-between;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 26px
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px
+    }
+
+    .logo {
+      width: 42px;
+      height: 42px;
+      flex: none;
+      filter: drop-shadow(0 0 14px rgba(169, 112, 255, .5))
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin: 0;
+      letter-spacing: .3px
+    }
+
+    h1 b {
+      color: var(--onion)
+    }
+
+    .sub {
+      color: var(--mut);
+      font-size: .9rem;
+      margin-top: 2px
+    }
+
+    .score {
+      text-align: right;
+      font-family: var(--mono)
+    }
+
+    .score .n {
+      font-size: 1.9rem;
+      color: var(--ok);
+      font-weight: 700;
+      line-height: 1
+    }
+
+    .score .l {
+      color: var(--mut);
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: 1.4px
+    }
+
+    .note {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--warn);
+      border-radius: 10px;
+      padding: 12px 15px;
+      color: var(--mut);
+      font-size: .86rem;
+      margin-bottom: 26px
+    }
+
+    .note b {
+      color: var(--txt)
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 20px;
+      position: relative;
+      transition: border-color .18s, transform .18s
+    }
+
+    .card:hover {
+      border-color: #34405a
+    }
+
+    .card.solved {
+      border-color: rgba(61, 220, 132, .5);
+      box-shadow: 0 0 0 1px rgba(61, 220, 132, .18) inset
+    }
+
+    .card.locked {
+      opacity: .55
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap
+    }
+
+    .idx {
+      font-family: var(--mono);
+      font-size: .78rem;
+      color: var(--mut2);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 2px 8px
+    }
+
+    .title {
+      font-size: 1.06rem;
+      font-weight: 650;
+      margin: 0
+    }
+
+    .tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-left: auto
+    }
+
+    .tag {
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--mut);
+      font-family: var(--mono)
+    }
+
+    .tag.t-model {
+      color: #c9b3ff;
+      border-color: #3a2d58
+    }
+
+    .tag.t-diff1 {
+      color: var(--ok);
+      border-color: #1f4a33
+    }
+
+    .tag.t-diff2 {
+      color: var(--warn);
+      border-color: #4a3a1a
+    }
+
+    .tag.t-diff3 {
+      color: var(--bad);
+      border-color: #4a1f26
+    }
+
+    .tag.t-soon {
+      color: var(--mut2);
+      border-color: var(--line)
+    }
+
+    .desc {
+      color: var(--mut);
+      font-size: .9rem;
+      margin: 10px 0 14px
+    }
+
+    .desc code {
+      font-family: var(--mono);
+      color: #c9b3ff;
+      background: #1d1630;
+      padding: 1px 5px;
+      border-radius: 5px;
+      font-size: .84em
+    }
+
+    .onion {
+      font-family: var(--mono);
+      font-size: .82rem;
+      margin: -2px 0 13px;
+      color: var(--onion)
+    }
+
+    .onion code {
+      color: var(--onion);
+      background: #1d1630;
+      padding: 2px 7px;
+      border-radius: 5px;
+      word-break: break-all;
+      user-select: all
+    }
+
+    .onion .omut {
+      color: var(--mut2)
+    }
+
+    .flagrow {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center
+    }
+
+    .flagrow input {
+      flex: 1;
+      min-width: 220px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      color: var(--txt);
+      font-family: var(--mono);
+      font-size: .9rem;
+      padding: 10px 13px;
+      border-radius: 9px;
+      outline: none;
+      transition: border-color .15s
+    }
+
+    .flagrow input:focus {
+      border-color: var(--onion)
+    }
+
+    .flagrow input::placeholder {
+      color: var(--mut2)
+    }
+
+    button.sub {
+      background: var(--onion2);
+      color: #fff;
+      border: 0;
+      font-weight: 600;
+      font-size: .9rem;
+      padding: 10px 18px;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: background .15s, transform .05s
+    }
+
+    button.sub:hover {
+      background: var(--onion)
+    }
+
+    button.sub:active {
+      transform: translateY(1px)
+    }
+
+    button.sub:disabled {
+      background: #2a3144;
+      color: var(--mut2);
+      cursor: default
+    }
+
+    .status {
+      font-size: .82rem;
+      font-family: var(--mono);
+      margin-top: 10px;
+      min-height: 1.1em;
+      color: var(--mut2)
+    }
+
+    .status.ok {
+      color: var(--ok)
+    }
+
+    .status.pending {
+      color: var(--warn)
+    }
+
+    .status.bad {
+      color: var(--bad)
+    }
+
+    .check {
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      color: var(--ok);
+      font-size: 1.1rem;
+      opacity: 0;
+      transition: opacity .2s
+    }
+
+    .card.solved .check {
+      opacity: 1
+    }
+
+    .section-h {
+      margin: 34px 0 4px;
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--mut2);
+      font-family: var(--mono)
+    }
+
+    footer {
+      margin-top: 40px;
+      color: var(--mut2);
+      font-size: .8rem;
+      text-align: center
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <header>
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <circle cx="32" cy="32" r="29" stroke="#a970ff" stroke-width="2.5" />
+          <circle cx="32" cy="32" r="20" stroke="#7c4dff" stroke-width="2" />
+          <circle cx="32" cy="32" r="11" stroke="#a970ff" stroke-width="2" />
+          <circle cx="32" cy="32" r="3.5" fill="#3ddc84" />
+        </svg>
+        <div>
+          <h1>GO<b>TOR</b> · Attack Board</h1>
+          <div class="sub">Private Tor lab : deanonymization &amp; traffic analysis. Capture a flag for each attack you
+            pull off.
+          </div>
+        </div>
+      </div>
+      <div class="score">
+        <div class="n"><span id="score">0</span>/<span id="total">0</span></div>
+        <div class="l">flags captured</div>
+      </div>
+    </header>
+
+    <div class="note">
+      <div>Services have no Internet access. Any listener/callback you set up must run inside the lab network.</div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+  </div>
+
+  <script>
+    const ATTACKS = [
+      {
+        id: "hs1-leaky", n: "01", title: "Web misconfiguration",
+        model: "", diff: 1, hs: "hs1-leaky",
+        desc: "Tor provides anonymity through the network. That doesn't mean the web server does…"
+      },
+      {
+        id: "bandwidth", n: "03", title: "Bandwidth",
+        model: "active", diff: 2, ph: "your relay nickname",
+        desc: "Who's checking your bandwidth? No one? Oh, nice! Enter your relay's nickname : it must absorb ≥80% of the Tor network's traffic."
+      },
+      {
+        id: "hs2-singlehop", n: "02", title: "Single Onion Service",
+        model: "", diff: 2, hs: "hs2-singlehop",
+        desc: "Single Onion Services can be handy! Just not for privacy."
+      },
+      {
+        id: "takeover", n: "05", title: "Onion takeover",
+        model: "active", diff: 2, hs: "hs3-lfi", check: true,
+        desc: "This awesome onion has a security flaw... Prove you can take over this onion. When someone request this onion, he has to see \"PWN BY 'YourHackerName'\" on /.Hit check when ready."
+      },
+      {
+        id: "hsdir-preshot", n: "04", title: "HSDir preshot",
+        model: "active", diff: 3, hs: "hs1-leaky", check: true,
+        desc: "Relays get flags really fast : that's not a problem, is it? Do your things, then hit \"check\" : the onion must be unreachable."
+      },
+    ];
+
+    const KEY = "gotor_flags_v1";
+    const store = {
+      get() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } },
+      set(o) { try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) { } },
+    };
+
+    function diffTag(d) {
+      const label = d === 1 ? "easy" : d === 2 ? "medium" : "hard";
+      return `<span class="tag t-diff${d}">${label}</span>`;
+    }
+
+    function render() {
+      const grid = document.getElementById("grid");
+      const saved = store.get();
+      grid.innerHTML = "";
+
+      ATTACKS.forEach(a => {
+        const st = saved[a.id] || {};
+        const solved = st.state === "ok";
+        const card = document.createElement("div");
+        card.className = "card" + (solved ? " solved" : "");
+        card.innerHTML = `
+      <div class="check">✓</div>
+      <div class="top">
+        <span class="idx">${a.n}</span>
+        <h3 class="title">${a.title}</h3>
+        <div class="tags">
+          ${diffTag(a.diff)}
+        </div>
+      </div>
+      <p class="desc">${a.desc}</p>
+      ${a.hs ? `<div class="onion" data-hs="${a.hs}">🧅 <span class="omut">loading onion…</span></div>` : ""}
+      <div class="flagrow">
+        ${a.check ? "" : `<input type="text" placeholder="${a.ph || ''}" autocomplete="off" spellcheck="false"
+               value="${st.flag ? escapeAttr(st.flag) : ""}" aria-label="flag ${a.title}">`}
+        <button class="sub">${solved ? "solved ✓" : (a.check ? "check" : "submit")}</button>
+      </div>
+      <div class="status ${solved ? "ok" : st.state || ""}">${st.msg || ""}</div>
+    `;
+        const input = card.querySelector("input");
+        const btn = card.querySelector("button");
+        const status = card.querySelector(".status");
+        if (solved) { if (input) input.disabled = true; btn.disabled = true; }
+        btn.addEventListener("click", () => submit(a.id, input, btn, status, card));
+        if (input) input.addEventListener("keydown", e => { if (e.key === "Enter") btn.click(); });
+        grid.appendChild(card);
+      });
+
+      updateScore();
+      loadOnions();
+    }
+
+    function escapeAttr(s) { return String(s).replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
+
+    async function loadOnions() {
+      let map = {};
+      try { const r = await fetch("api/onions"); map = await r.json(); } catch (e) { }
+      document.querySelectorAll(".onion[data-hs]").forEach(el => {
+        const o = map[el.dataset.hs];
+        el.innerHTML = o
+          ? `🧅 <code>${o}</code>`
+          : `🧅 <span class="omut">onion not published yet : wait for the lab to converge</span>`;
+      });
+    }
+
+    function updateScore() {
+      const saved = store.get();
+      const ok = ATTACKS.filter(a => (saved[a.id] || {}).state === "ok").length;
+      document.getElementById("score").textContent = ok;
+      document.getElementById("total").textContent = ATTACKS.length;
+    }
+
+    async function submit(id, input, btn, status, card) {
+      const flag = input ? input.value.trim() : "";
+      if (input && !flag) { setStatus(status, "bad", "enter a flag first."); return; }
+      const saved = store.get();
+      saved[id] = { flag, state: "", msg: "" };
+      store.set(saved);
+
+      btn.disabled = true; setStatus(status, "pending", "checking…");
+
+      try {
+        const r = await fetch("api/validate", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, flag })
+        });
+        const data = await r.json();   // { ok, msg?, pending? }
+        if (data.ok) {
+          saved[id] = { flag, state: "ok", msg: data.msg || "correct flag ✓" }; store.set(saved);
+          card.classList.add("solved"); if (input) input.disabled = true; btn.textContent = "solved ✓";
+          setStatus(status, "ok", data.msg || "correct flag ✓");
+        } else if (data.pending) {
+          saved[id] = { flag, state: "pending", msg: data.msg || "validation coming soon." }; store.set(saved);
+          btn.disabled = false; setStatus(status, "pending", data.msg || "validation coming soon.");
+        } else {
+          saved[id] = { flag, state: "bad", msg: data.msg || "incorrect flag." }; store.set(saved);
+          btn.disabled = false; setStatus(status, "bad", data.msg || "incorrect flag.");
+        }
+      } catch (err) {
+        saved[id] = { flag, state: "pending", msg: "saved : validation coming soon." };
+        store.set(saved);
+        btn.disabled = false; setStatus(status, "pending", "saved : validation coming soon.");
+      }
+      updateScore();
+    }
+
+    function setStatus(el, cls, msg) { el.className = "status " + cls; el.textContent = msg; }
+
+    render();
+  </script>
+</body>
+
+</html>

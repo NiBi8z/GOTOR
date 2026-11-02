@@ -1,0 +1,4 @@
+ORPort 9001
+SocksPort 0
+ExitRelay 0
+ExitPolicy reject *:*
