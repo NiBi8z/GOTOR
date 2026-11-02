@@ -89,7 +89,7 @@ This lab contains:
 | DirAuth      | auth1, auth2, auth3                         |
 | Guards       | guard1, guard2, guard3                      |
 | Middles      | middle1, middle2, middle3, middle4, middle5 |
-| Hidden svc   | hs1-leaky, hs2-singlehop                    |
+| Hidden svc   | hs1-leaky, hs2-singlehop, hs3-lfi           |
 | Clients      | client1, client2                            |
 | SOCKS bridge | socks-bridge                                |
 
